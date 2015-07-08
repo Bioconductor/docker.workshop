@@ -1,0 +1,19 @@
+---
+title: "Docker and Bioconductor"
+author: "Dan Tenenbaum"
+date: "`r doc_date()`"
+package: "`r pkg_ver('docker.workshop')`"
+abstract: >
+  Using Docker and Bioconductor.
+vignette: >
+  %\VignetteIndexEntry{Docker and Bioconductor}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output: 
+  BiocStyle::html_document:
+    toc: true
+---
+
+# Hello
+
+## Goodbye

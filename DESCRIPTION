@@ -1,0 +1,11 @@
+Package: docker.workshop
+Type: Package
+Title: Materials for Docker Workshop at BioC2015 Conference
+Version: 0.99.1
+Date: 2015-07-08
+Author: Dan Tenenbaum
+Maintainer: Dan Tenenbaum <dtenenba@fredhutch.org>
+Description: Materials for Docker Workshop at BioC2015 Conference
+License: Artistic-2.0
+Suggests: BiocStyle, rmarkdown, knitr
+VignetteBuilder: knitr
