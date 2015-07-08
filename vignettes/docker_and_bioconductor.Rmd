@@ -14,6 +14,76 @@ output:
     toc: true
 ---
 
-# Hello
+# What is Docker?
 
-## Goodbye
+I've found that it can be difficult to understand what Docker is
+just from a description. So let's dive right in and try to explain
+with a quick example.
+
+## Using _shellinabox_
+
+You are welcome to [install Docker](https://docs.docker.com/installation/)
+on your own computer, but our Amazon Machine Images (AMIs) come with
+Docker already installed. We can access it using 
+[_shellinabox_](https://code.google.com/p/shellinabox/) which provides
+most of the functionality of a terminal window in your web browser. To use it, open a new web browser window.
+
+Your _shellinabox_ URL is the same as your RStudio URL but with
+`:4200` added to the end. So if your RStudio URL is
+
+    http://ec2-www-x-yyy-xx.compute-1.amazonaws.com
+
+Then your _shellinabox_ URL is:
+
+    http://ec2-www-x-yyy-xx.compute-1.amazonaws.com:4200
+
+Go to that URL and log in with username `ubuntu` and password `bioc`.
+
+## A quick example
+
+Before we do anything with docker, let's take a quick look at the machine we are on. What operating system is it running? To find out, enter the command
+
+    cat /etc/*-release
+
+This tells us we are on Ubuntu Linux version 14.04. 
+Let's take a look at what processes are running on the machine. Enter 
+the command
+
+    ps aux
+
+This will list a lot of processes, probably over 100, even
+though we are hardly doing anything on the machine. The typical 
+machine runs a lot of processes just for its basic operation.
+
+Now let's try this with Docker. Start a docker container with the 
+command:
+
+    docker run -ti --rm debian:latest bash
+
+You'll see a prompt come up that looks something like this:
+
+    root@bfd260cc3d02:/#
+
+The first thing to notice is that this prompt came up instantly.
+
+Let's try once again the command to see what operating system we are on:
+
+    cat /etc/*-release
+
+This tells us we are on Debian version 8.
+
+Now let's look and see what processes are running, again with
+
+    ps aux
+
+This time it only reports two processes, our `bash` shell and our
+`ps` command!
+
+## What just happened?
+
+We just demonstrated an essential aspect of Docker: the fact
+that its processes are _isolated_ from those of the host machine.
+In fact, the Docker container we just started is running a totally
+different Linux distribution (Debian vs. Ubuntu on the host).
+
+
