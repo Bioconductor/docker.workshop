@@ -18,7 +18,8 @@ output:
 
 I've found that it can be difficult to understand what Docker is
 just from a description. So let's dive right in and try to explain
-with a quick example.
+with a quick example. You'll need to bring up _shellinabox_ (see 
+below) in order to try the example.
 
 ## Using _shellinabox_
 
@@ -26,34 +27,40 @@ You are welcome to [install Docker](https://docs.docker.com/installation/)
 on your own computer, but our Amazon Machine Images (AMIs) come with
 Docker already installed. We can access it using 
 [_shellinabox_](https://code.google.com/p/shellinabox/) which provides
-most of the functionality of a terminal window in your web browser. To use it, open a new web browser window.
+most of the functionality of a terminal window in your web browser. 
+To use it, open a new web browser window.
 
 Your _shellinabox_ URL is the same as your RStudio URL but with
 `:4200` added to the end. So if your RStudio URL is
 
-    http://ec2-www-x-yyy-xx.compute-1.amazonaws.com
+    http://ec2-www-x-yyy-zz.compute-1.amazonaws.com
 
 Then your _shellinabox_ URL is:
 
-    http://ec2-www-x-yyy-xx.compute-1.amazonaws.com:4200
+    http://ec2-www-x-yyy-zz.compute-1.amazonaws.com:4200
 
 Go to that URL and log in with username `ubuntu` and password `bioc`.
 
 ## A quick example
 
-Before we do anything with docker, let's take a quick look at the machine we are on. What operating system is it running? To find out, enter the command
+before we do anything with docker, let's take a quick look at the
+machine we are on. what operating system  is it running? to find out,
+enter the command
 
     cat /etc/*-release
 
-This tells us we are on Ubuntu Linux version 14.04. 
-Let's take a look at what processes are running on the machine. Enter 
-the command
+This tells us we are on Ubuntu Linux version 14.04.  Let's take a look
+at what processes are running on the machine. Enter  the command
 
     ps aux
 
 This will list a lot of processes, probably over 100, even
 though we are hardly doing anything on the machine. The typical 
 machine runs a lot of processes just for its basic operation.
+
+Finally, let's see what files are in the current directory with
+
+    ls
 
 Now let's try this with Docker. Start a docker container with the 
 command:
@@ -82,8 +89,125 @@ This time it only reports two processes, our `bash` shell and our
 ## What just happened?
 
 We just demonstrated an essential aspect of Docker: the fact
-that its processes are _isolated_ from those of the host machine.
+that processes in a Docker container 
+are _isolated_ from those of the host machine.
 In fact, the Docker container we just started is running a totally
 different Linux distribution (Debian vs. Ubuntu on the host).
 
+And yet it's not a virtual machine; if it were, we'd expect to see
+a whole bunch of processes on it, just like on a normal machine.
+Docker uses fairly recent advances in the Linux kernel called _cgroups_
+and _namespaces_ to achieve this isolation. 
 
+So even though we were running a different Linux distribution
+in our container (Debian) than on our host (Ubuntu), the container
+was running in the same _kernel_ as the host. That explains why
+the container started up so quickly.
+
+Docker's filesystem is also isolated, if you now run
+
+    ls
+
+You'll see totally different files than you did on the host.
+
+So that's Docker in a nutshell. Isolated processes and filesystem.
+When you see how Docker containers are created (in the next section)
+you'll understand all the shipping container metaphors that get
+tossed around with respect to Docker.
+
+## Creating a container
+
+Let's say I have created a revolutionary new application that
+will change the world and bring me riches and fame. 
+The application is a line of shell script that says:
+
+    echo "Hello, world!"
+
+But we can pretend it is a very complex application that has a lot
+of operating system dependencies and is very difficult to build and
+install. So I'd like to ship my application as a Docker container,
+to save other users the pain of installing it. 
+
+I'd create a file called `Dockerfile` and put the following in it:
+
+    FROM debian:latest
+    CMD echo "Hello, world!"
+
+Then I'd build the container with:
+
+    docker build -t dtenenba/myapp .
+
+Now the container can be run as follows:
+
+    docker run dtenenba/myapp
+
+Lo and behold, it spits out "Hello, world!". So now I can check my Dockerfile
+into GitHub and anyone can build and run it. I could also push it
+to [Docker Hub](https://hub.docker.com) (and I have) and then any user could get it 
+(without needing to build it) by doing
+
+    docker run dtenenba/myapp 
+
+and the container will be pulled down from the server if it does not
+already exist on the host. Or you could explicitly pull it (but not run it)
+with
+
+    docker pull dtenenba/myapp
+
+Dockerfiles contain all the instructions necessary to set
+up a container. Generally this consists of installing dependencies
+(usually with a package manager) and other prerequisites.
+
+See the full [Dockerfile reference](https://docs.docker.com/reference/builder/)
+for more infromation.
+
+(There's [another way](https://docs.docker.com/reference/commandline/commit/)
+to create a Docker container, but it's not recommended, so I won't discuss it.
+So there!)
+
+
+## Dockerfiles and filesystem layers
+
+
+By the way, I highly recommend [The Docker Book](http://www.dockerbook.com/)
+by James Turnbull. It's available as a PDF and is updated frequently.
+In fact, I like the book so much that I am just going to quote from it
+fairly liberally about the Docker filesystem:
+
+> In a more traditional Linux boot, the root filesystem is mounted read-
+> only and then switched to read-write after boot and an integrity check
+> is conducted. In the Docker world, however, the root filesystem stays
+> in read-only mode, and Docker takes advantage of a 
+> [union mount](https://en.wikipedia.org/wiki/Union_mount) to add
+> more read-only filesystems onto the root filesystem. A union mount is
+> a mount that allows several filesystems to be mounted at one time but
+> appear to be one filesystem. The union mount overlays the filesystems
+> on top of one another so that the resulting filesystem may contain
+> files and subdirectories from any or all of the underlying
+> filesystems. 
+ 
+> Docker calls each of these filesystems images. Images can
+> be layered on top of one another. The image below is called the parent
+> image and you can traverse each layer until you reach the bottom of
+> the image stack where the final image is called the base image.
+> Finally, when a container is launched from an image, Docker mounts a
+> read-write filesystem on top of any layers below. This is where
+> whatever processes we want our Docker container to run will execute.
+
+> This sounds confusing, so perhaps it is best represented by a diagram.
+
+![](filesystem.jpg "Docker filesystem")
+
+This diagram could be seen as another way to represent the following
+Dockerfile:
+
+    FROM ubuntu
+    RUN apt-get install -y emacs
+    RUN apt-get install -y apache2
+
+The purple boxes in the diagram (read from bottom to top) match the 
+lines in the Dockerfile. Each line in a Dockerfile represents 
+a filesytem layer.
+
+
+ 
