@@ -206,8 +206,68 @@ Dockerfile:
     RUN apt-get install -y apache2
 
 The purple boxes in the diagram (read from bottom to top) match the 
-lines in the Dockerfile. Each line in a Dockerfile represents 
-a filesytem layer.
+lines in the Dockerfile. When Docker builds the Dockerfile, it creates
+a new image (or filesystem layer) for each command in the Dockerfile.
+
+# Use Cases
+
+By now I hope you have a basic idea of what Docker is: an easy way to
+package up an environment to include some application and all of its 
+dependencies. Now perhaps we have enough information to speculate
+about how Docker could help us:
+
+* **Reliability**: Now we have a way to distribute applications
+to other people, where the application should "just work." 
+This should eliminate configuration and "works for me" problems.
+Workflows can be given to sysadmins/cluster admins as Docker
+containers and they don't need to know anything about 
+what's in the containers, but can treat them as black boxes
+that take input and produce output. No more waiting for
+your sysadmin to install the latest version of R.
+
+* **Reproducibility**: You can run a workflow today and run it
+again in a year using the _exact_ same environment. We'll discuss
+this more later in the context of the Bioconductor containers.
+
+* **Testing**: My workspace on my local computer changes every
+day as I add and remove software, but for testing I need a 
+consistent environment.
+
+* **Separation of concerns**: Some applications consist of multiple
+processes; thse can each run in their own Docker container.
+We'll discuss how to do this a little later.
 
 
- 
+# Docker and Root Privileges
+
+One big issue with Docker is that you need to be _root_ to run it,
+because the kernel features that make Docker work require root
+privileges. We haven't seen it in our examples so far because the
+_ubuntu_ user on the AMI is a member of a group that has root
+privileges for  certain operations. Normally, however, 
+all _docker_ commands must be run as root or prepended by _sudo_.
+
+This does present some problems. Not everyone (especially on shared
+systems) has root privileges. Sysadmins may be reluctant to
+run a container with unknown contents as root.
+
+# What if I'm not on Linux?
+
+You can still run Docker on Windows and Mac, via a lightweight
+virtual machine called [Boot2docker](http://boot2docker.io/).
+Just follow the instructions on the 
+[Docker installation](https://docs.docker.com/installation/) page.
+
+Windows 10 will include a form of Docker allowing you
+to run Windows containers.
+
+# Docker and R/Bioconductor
+
+We've seen how Docker images can be built on top of one another:
+our "Hello, World" application was built on top of _debian:latest_.
+By the same token, the Bioconductor images are built on
+top of R and RStudio images provided by the 
+[Rocker](http://dirk.eddelbuettel.com/blog/2014/10/23/)
+organization.
+
+
