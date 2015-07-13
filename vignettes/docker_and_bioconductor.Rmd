@@ -275,3 +275,15 @@ The [full documentation](http://bioconductor.org/help/docker/)
 for these images is at the Bioconductor website.
 
 
+For devel and release (and going forward, older releases), the following
+containers are available:
+
+* `base`: R and the `BiocInstaller` package (providing `biocLite()`)
+* `core`: `base` plus core infrastructure packages
+* `flow`: `core` plus all packages with the FlowCytometry biocView
+* `microarray`: `core` plus all packages with the Microarray biocView
+* `proteomics`: `core` plus all packages with the Proteomics biocView
+* `sequencing`: `core` plus all packages with the Sequencing biocView
+
+
+
