@@ -1,8 +1,8 @@
 ---
 title: "Docker and Bioconductor"
 author: "Dan Tenenbaum"
-date: "`r doc_date()`"
-package: "`r pkg_ver('docker.workshop')`"
+date: "`r BiocStyle::doc_date()`"
+package: "`r BiocStyle::pkg_ver('docker.workshop')`"
 abstract: >
   Using Docker and Bioconductor.
 vignette: >
