@@ -271,3 +271,7 @@ top of R and RStudio images provided by the
 organization.
 
 
+The [full documentation](http://bioconductor.org/help/docker/)
+for these images is at the Bioconductor website.
+
+
