@@ -235,6 +235,8 @@ containers and they don't need to know anything about
 what's in the containers, but can treat them as black boxes
 that take input and produce output. No more waiting for
 your sysadmin to install the latest version of R.
+[Galaxy](https://usegalaxy.org/) tools can also be
+defined as Docker containers.
 
 * **Reproducibility**: You can run a workflow today and run it
 again in a year using the _exact_ same environment. We'll discuss
@@ -257,6 +259,7 @@ privileges. We haven't seen it in our examples so far because the
 _ubuntu_ user on the AMI is a member of a group that has root
 privileges for  certain operations. Normally, however, 
 all _docker_ commands must be run as root or prepended by _sudo_.
+(This is not necessary on Mac or Windows.)
 
 This does present some problems. Not everyone (especially on shared
 systems) has root privileges. Sysadmins may be reluctant to
@@ -329,7 +332,7 @@ If you build it:
 
     docker run --name webserverdemo -p 8080:8080 dtenenba/webdemo .
 
-Similarly to the `-v` switch, the `-p` script maps a port on the host to one on
+Similarly to the `-v` switch, the `-p` switch maps a port on the host to one on
 the container. 
 
 You can then open it in a web browser and see the riveting message.
@@ -418,7 +421,8 @@ for these images is at the Bioconductor website.
 
 
 For devel and release (and going forward, older releases), the following
-containers are available:
+containers are available (the actual container names start with `release_`
+or `devel_` and end with one of the following):
 
 * `base`: R and the `BiocInstaller` package (providing `biocLite()`)
 * `core`: `base` plus core infrastructure packages
@@ -428,4 +432,81 @@ containers are available:
 * `sequencing`: `core` plus all packages with the Sequencing biocView
 
 
+## Starting the containers
+
+There are several ways to interact with the containers. The 
+default way is to use RStudio Server. Entering the following
+command:
+
+    docker run -p 8787:8787 --rm bioconductor/devel_base
+
+Will make RStudio Server available on port 8787 of the
+host. So if your AMI URL is 
+
+    http://ec2-www-x-yyy-zz.compute-1.amazonaws.com
+
+Add `:8787` to the end:
+
+    http://ec2-www-x-yyy-zz.compute-1.amazonaws.com:8787
+
+The RStudio login is `rstudio` and the password is `rstudio`.
+
+You can also start command-line R with this command:
+
+    docker run -ti --rm bioconductor/devel_base R
+
+Or if you plan to run other commands besides R inside
+the container, start a bash shell:
+
+    docker run -ti --rm bioconductor/devel_base bash
+
+## Reproducibility
+
+The key to reproducibility is to know exactly which
+Docker image you are using so you (or others) can reuse it later.
+
+Bioconductor's Docker images are tagged. For example, 
+[here](https://registry.hub.docker.com/u/bioconductor/devel_base/tags/manage/)
+are the available tags for the `devel_base` image.
+
+There are three kinds of tags:
+
+* Date tags (example: 20150713). The images are rebuilt
+  every day. If the build is successful, the image
+  is tagged with a string representing the current date.
+  _This is the only kind of tag you should rely on 
+  for reproducibility._
+* Version tags (example: 3.2). With each daily build,
+  the version tag is applied. This number refers
+  to the Bioconductor version.
+* The string `latest`. This tag is applied to each
+  daily build of an image. Note that when running
+  or pulling an image, by default you are pulling
+  the `latest` tag of that image, unless you specify
+  another tag, with (for example):
+
+    docker pull bioconductor/devel_base:20150713
+
+So an image can have multiple tags. If today is July 13,
+2015, then the most recent `devel_base` image will
+be tagged `20150713`, `3.2`, and `latest`. The
+tag `20150713` will **always** apply to the same
+image, but the other two tags do not. So for purposes
+of reproducibility, you should always pay attention
+to the date tag of the image you're using. If you didn't
+start the image with a specific tag, you can determine
+the tag of a running container with the `docker ps` command,
+for example:
+
+    docker run -ti --rm bioconductor/devel_base
+
+And then in another window:
+
+    $ docker ps
+    CONTAINER ID        IMAGE                              COMMAND             CREATED             STATUS              PORTS               NAMES
+    0af597a23632        bioconductor/devel_base:20150713   "bash"              6 seconds ago       Up 6 seconds        8787/tcp            happy_yalow
+
+This tells me that I am using the image tagged 20150713.
+
+# Resources
 
