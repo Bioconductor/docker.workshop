@@ -7,5 +7,5 @@ Author: Dan Tenenbaum
 Maintainer: Dan Tenenbaum <dtenenba@fredhutch.org>
 Description: Materials for Docker Workshop at BioC2015 Conference
 License: Artistic-2.0
-Suggests: BiocStyle, rmarkdown, knitr
+Suggests: BiocStyle, rmarkdown, knitr, httr
 VignetteBuilder: knitr

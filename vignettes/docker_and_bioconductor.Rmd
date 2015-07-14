@@ -84,7 +84,20 @@ Now let's look and see what processes are running, again with
     ps aux
 
 This time it only reports two processes, our `bash` shell and our
-`ps` command!
+`ps` command! 
+
+Finally, type
+
+    ls
+
+to see what files are present. They are totally different files than the ones
+we saw on the host machine.
+
+To clean up, type 
+
+    exit
+
+to leave the container.
 
 ## What just happened?
 
@@ -96,21 +109,19 @@ different Linux distribution (Debian vs. Ubuntu on the host).
 
 And yet it's not a virtual machine; if it were, we'd expect to see
 a whole bunch of processes on it, just like on a normal machine.
-Docker uses fairly recent advances in the Linux kernel called _cgroups_
-and _namespaces_ to achieve this isolation. 
+(Docker uses fairly recent advances in the Linux kernel called _cgroups_
+and _namespaces_ to achieve this isolation.) So unlike a virtual
+machine, we can take advantage of all the speed and hardware of 
+the host machine.
 
 So even though we were running a different Linux distribution
 in our container (Debian) than on our host (Ubuntu), the container
 was running in the same _kernel_ as the host. That explains why
 the container started up so quickly.
 
-Docker's filesystem is also isolated, if you now run
+Docker's filesystem is also isolated as we saw by running `ls`.
 
-    ls
-
-You'll see totally different files than you did on the host.
-
-So that's Docker in a nutshell. Isolated processes and filesystem.
+So that's Docker in a nutshell. Isolated processes and filesystem (and network too!).
 When you see how Docker containers are created (in the next section)
 you'll understand all the shipping container metaphors that get
 tossed around with respect to Docker.
@@ -260,6 +271,137 @@ Just follow the instructions on the
 
 Windows 10 will include a form of Docker allowing you
 to run Windows containers.
+
+
+# Breaking into the black box
+
+You might be thinking, "well, it's nice that I can have an application 
+that says 'Hello world', but how do I get Docker to compute on my data?
+How do I run a web application on docker?"
+
+## Working with local files
+
+Here's a quick Dockerfile that performs some operation on data on
+my local computer. In this case, I want to make value judgements
+about the files in a directory. The following Dockerfile
+will do it:
+
+    FROM debian:latest
+    VOLUME /data
+    WORKDIR /data
+    CMD for i in `ls`; do echo $i is awesome; done
+
+I can build it with
+
+    docker build -t dtenenba/voldemo .
+
+And run it like this:
+
+    docker run -v /etc/:/data dtenenba/voldemo
+
+The `-v` switch takes two directories (separated by a colon); the first one is a directory
+on my local filesystem, the second can be thought of as a 'mount point' for that directory
+inside the container. Affirmingly, the above command tells me that every file in my
+`/etc` directory is awesome.
+
+In this case, Docker is just listing the files, but it can perform write operations as well.
+(Since Docker runs as root by default, its output files may not have the permissions you want;
+read [Rocker's page](https://github.com/rocker-org/rocker/wiki/Sharing-files-with-host-machine)
+on the subject for tips on getting around this).
+
+## Exposing the network
+
+This Dockerfile is a very simple web server, but it could be a complex web 
+application:
+
+    FROM debian:latest
+    RUN echo "It works!" > index.html
+    RUN apt-get update
+    RUN apt-get install -y python
+    EXPOSE 8000
+    CMD python -m SimpleHTTPServer 8080
+
+If you build it:
+
+    docker build -t dtenenba/webdemo .
+
+... and run it:
+
+    docker run --name webserverdemo -p 8080:8080 dtenenba/webdemo .
+
+Similarly to the `-v` switch, the `-p` script maps a port on the host to one on
+the container. 
+
+You can then open it in a web browser and see the riveting message.
+
+### Knowing which URL to open
+
+If you created this Dockerfile on your own Linux machine, you can just go to
+[http://localhost:8080](http://localhost:8008). If you are using boot2docker
+you can do something like this to get the URL:
+
+    echo http://$(boot2docker ip):8000
+
+If you are on this AMI, you can just append `:8080` to your RStudio URL, so
+something like:
+
+    http://ec2-www-x-yyy-zz.compute-1.amazonaws.com:8080
+
+### Cleaning up
+
+To stop the web server, you can press control-C, or open another window and issue
+the command:
+
+    docker rm -f webserverdemo
+
+# Composing complex applications from multiple containers
+
+A typical web application might involve several processes; for example, the
+Bioconductor new package tracker consists of
+a web application written in Python, a MySQL database, and an SMTP mail server.
+
+Containers can be [linked together](https://docs.docker.com/userguide/dockerlinks/)
+to facilitate scenarios like this. Two containers can communicate with
+each other over network ports (without exposing their networks to the host!)
+
+You can make an application like this out of multiple containers, one
+for each process. (A docker application _can_ consist of multiple processes
+inside a single container, but it's considered a best practice to just
+run one process per container.)
+
+Even better, for common applications like MySQL server, you can just
+pull down a pre-existing container that's ready to go. You don't need
+to create and build the MySQL server yourself. Similarly, there's 
+an off the shelf web-app container that just receives email sent to it 
+and displays it in a browser, ideal for testing the email
+functionality of a web application.
+
+Tying it all together is a tool called 
+[Docker Compose](https://docs.docker.com/compose/) (formerly known as Fig).
+This tool is not part of Docker and needs to be installed separately.
+
+With a [YAML file](https://github.com/dtenenba/bioc_docker/blob/master/tracker.bioconductor.org/fig.yml),
+we declare the dependencies between containers in
+this application. Here's the real-life YAML file for the multi-container 
+Docker app we use for testing the new package tracker:
+
+
+```{r, echo=FALSE, comment=NA}
+library(httr)
+cat(x <- content(GET("https://raw.githubusercontent.com/dtenenba/bioc_docker/master/tracker.bioconductor.org/fig.yml")))
+```
+
+
+I won't dwell too much on details here (the complete app is
+[on GitHub](https://github.com/dtenenba/bioc_docker/tree/master/tracker.bioconductor.org)),
+ but this sets up the three containers
+and all the information they need to communicate with each other. Each container
+can access the relevant information by means of environment variables.
+A single command (`docker-compose up`) turns on all three containers.
+
+See the [docker-compose.yml reference](https://docs.docker.com/compose/yml/)
+for more on this declarative syntax.
+
 
 # Docker and R/Bioconductor
 
