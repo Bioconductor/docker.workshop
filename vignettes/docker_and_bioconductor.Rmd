@@ -250,6 +250,10 @@ consistent environment.
 processes; thse can each run in their own Docker container.
 We'll discuss how to do this a little later.
 
+* **Cloud deployment**: Both [Amazon](https://aws.amazon.com/ecs/)
+  and [Google](https://cloud.google.com/container-engine/) are 
+  supporting Docker as a first-class citizen on their cloud platforms.
+
 
 # Docker and Root Privileges
 
