@@ -512,5 +512,13 @@ And then in another window:
 
 This tells me that I am using the image tagged 20150713.
 
-# Resources
+
+# References
+
+* [Dockerfile Reference](https://docs.docker.com/reference/builder/)
+* [`docker run` reference](https://docs.docker.com/reference/run/)
+* [Docker command line reference](https://docs.docker.com/reference/commandline/cli/)
+* [Docker Compose](https://docs.docker.com/compose/)
+* [Bioconductor Docker Page](http://bioconductor.org/help/docker/)
+* [Reproducible Research using Docker and R](https://benmarwick.github.io/UW-eScience-docker-for-reproducible-research/#1)
 
