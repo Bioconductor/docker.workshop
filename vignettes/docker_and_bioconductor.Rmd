@@ -139,6 +139,11 @@ of operating system dependencies and is very difficult to build and
 install. So I'd like to ship my application as a Docker container,
 to save other users the pain of installing it. 
 
+First I'll make a new directory and change to it:
+
+    mkdir workspace
+    cd workspace
+
 I'd create a file called `Dockerfile` and put the following in it:
 
     FROM debian:latest
