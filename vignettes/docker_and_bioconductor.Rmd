@@ -339,7 +339,7 @@ If you build it:
 
 ... and run it:
 
-    docker run --name webserverdemo -p 8080:8080 dtenenba/webdemo .
+    docker run --name webserverdemo -p 8080:8080 dtenenba/webdemo
 
 Similarly to the `-v` switch, the `-p` switch maps a port on the host to one on
 the container. 
